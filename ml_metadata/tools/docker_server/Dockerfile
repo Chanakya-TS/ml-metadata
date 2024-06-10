@@ -33,7 +33,8 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   git \
   python3-distutils \
   python-is-python3 \
-  python3-dev
+  python3-dev \
+  libssl-dev
 
 # Set up Bazel 6.1.0
 ENV BAZEL_VERSION 6.1.0
@@ -53,6 +54,7 @@ WORKDIR /mlmd-src
 # "-std=c++17" is needed in order to build with ZetaSQL.
 RUN bazel build -c opt --action_env=PATH \
   --define=grpc_no_ares=true \
+  --jobs=1 \
   //ml_metadata/metadata_store:metadata_store_server --cxxopt="-std=c++17"
 
 # copying libmysqlclient source onto THIRD_PARTY folder.

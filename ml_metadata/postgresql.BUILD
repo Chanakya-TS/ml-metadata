@@ -38,7 +38,9 @@ cc_library(
         "src/common/rmtree.c",
         "src/common/saslprep.c",
         "src/common/scram-common.c",
-        "src/common/sha2.c",
+        # "src/common/sha2.c",
+        # Added sha2_openssl.c
+        "src/common/sha2_openssl.c", # for --with-openssl flag
         "src/common/string.c",
         "src/common/unicode_norm.c",
         "src/common/username.c",
@@ -53,6 +55,10 @@ cc_library(
         "src/interfaces/libpq/fe-protocol2.c",
         "src/interfaces/libpq/fe-protocol3.c",
         "src/interfaces/libpq/fe-secure.c",
+        # Added fe-secure-openssl.c
+        "src/interfaces/libpq/fe-secure-openssl.c", # for --with-openssl flag
+        # Added fe-secure-common.c # for --with-openssl flag
+        "src/interfaces/libpq/fe-secure-common.c",
         "src/interfaces/libpq/libpq-events.c",
         "src/interfaces/libpq/pqexpbuffer.c",
         "src/port/chklocale.c",
@@ -116,8 +122,12 @@ cc_library(
     ] + select({
         "//conditions:default": [],
     }),
+    # Linking libraries required for --with-openssl
     linkopts = select({
-        "//conditions:default": [],
+        "//conditions:default": [
+            "-lcrypto",
+            "-lssl",
+        ],
     }),
     deps = [],
 )
@@ -467,10 +477,12 @@ genrule(
             "/* #undef HAVE_ATOMIC_H */",
             "",
             "/* Define to 1 if you have the `BIO_get_data' function. */",
-            "/* #undef HAVE_BIO_GET_DATA */",
+            # "/* #undef HAVE_BIO_GET_DATA */",
+            "#define HAVE_BIO_GET_DATA 1",
             "",
             "/* Define to 1 if you have the `BIO_meth_new' function. */",
-            "/* #undef HAVE_BIO_METH_NEW */",
+            # "/* #undef HAVE_BIO_METH_NEW */",
+            "#define HAVE_BIO_METH_NEW 1",
             "",
             "/* Define to 1 if you have the `cbrt' function. */",
             "#define HAVE_CBRT 1",
@@ -712,7 +724,8 @@ genrule(
             "/* #undef HAVE_LDAP_INITIALIZE */",
             "",
             "/* Define to 1 if you have the `crypto' library (-lcrypto). */",
-            "/* #undef HAVE_LIBCRYPTO */",
+            # "/* #undef HAVE_LIBCRYPTO */",
+            "#define HAVE_LIBCRYPTO 1",
             "",
             "/* Define to 1 if you have the `ldap' library (-lldap). */",
             "/* #undef HAVE_LIBLDAP */",
@@ -733,7 +746,8 @@ genrule(
             "/* #undef HAVE_LIBSELINUX */",
             "",
             "/* Define to 1 if you have the `ssl' library (-lssl). */",
-            "/* #undef HAVE_LIBSSL */",
+            # "/* #undef HAVE_LIBSSL */",
+            "#define HAVE_LIBSSL 1",
             "",
             "/* Define to 1 if you have the `wldap32' library (-lwldap32). */",
             "/* #undef HAVE_LIBWLDAP32 */",
@@ -887,7 +901,8 @@ genrule(
             "/* #undef HAVE_SSL_CLEAR_OPTIONS */",
             "",
             "/* Define to 1 if you have the `SSL_get_current_compression' function. */",
-            "/* #undef HAVE_SSL_GET_CURRENT_COMPRESSION */",
+            # "/* #undef HAVE_SSL_GET_CURRENT_COMPRESSION */",
+            "#define HAVE_SSL_GET_CURRENT_COMPRESSION 1", # for --with-openssl flag
             "",
             "/* Define to 1 if stdbool.h conforms to C99. */",
             "#define HAVE_STDBOOL_H 1",
@@ -1273,7 +1288,8 @@ genrule(
             "/* #undef USE_BSD_AUTH */",
             "",
             "/* Define to use /dev/urandom for random number generation */",
-            "#define USE_DEV_URANDOM 1",
+            # Undefining this, USE_OPENSSL_RANDOM 1 is defined instead
+            "/* #undef USE_DEV_URANDOM */",
             "",
             "/* Define to 1 if you want float4 values to be passed by value.",
             "   (--enable-float4-byval) */",
@@ -1303,10 +1319,12 @@ genrule(
             "/* #undef USE_NAMED_POSIX_SEMAPHORES */",
             "",
             "/* Define to build with OpenSSL support. (--with-openssl) */",
-            "/* #undef USE_OPENSSL */",
+            #"/* #undef USE_OPENSSL */",
+            "#define USE_OPENSSL", # for --with-openssl flag
             "",
             "/* Define to use OpenSSL for random number generation */",
-            "/* #undef USE_OPENSSL_RANDOM */",
+            #"/* #undef USE_OPENSSL_RANDOM */",
+            "#define USE_OPENSSL_RANDOM", # for --with-openssl flag
             "",
             "/* Define to 1 to build with PAM support. (--with-pam) */",
             "/* #undef USE_PAM */",
